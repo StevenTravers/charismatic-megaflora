@@ -1,0 +1,24 @@
+Metadata for orchid field work in the summer of 2023
+The variable descriptions below are for the column headers in the file"Overview data set (adjust for R).csv
+This is a CSV excel file summarizing flower and fruit counts for six populations of Platanthera praeclara
+
+Variables-
+Population: One of six populations sampled in 2023
+PlantID: the ID number used on the tag for each individual plant
+C1Date: the date of the first census (flowers and buds)
+C1Height: height of the stem up to the top node (cm)
+C1 open flwrs: the number of open flowers on the plant on the census date
+C1 buds: the number of unopened flower buds on the plant (in combination with the number flowers, equals the number of nodes)
+C1 notes: field notes regarding particulary plant
+C2Date: the date of the second census
+C2Open flwrs: the number of open flowers on the plant on the census date
+C2 buds: the number of unopened flower buds on the plant
+C2 notes: field notes regarding particulary plant
+FC date: fruit count date or the date when fruit development was assessed
+FC swollen: the number of fruit that were swollen and fully developed on FC date
+FC undeveloped: the number of undeveloped ovaries remaining on the plant 
+FC halfway: the number of ovaries that were intermediate in size between fully developed and undeveloped
+Fate MT: Plants never found because tag never found during fruit census
+Fate Herb: Plant missing (but tag found) or stem showing signs of hebivory - assume eaten by herbivores
+Fate Hum: Plant likely removed by human either mowing or running over by fruit count date
+Fate intact: Plant still present with ovaries and fruits visible
