@@ -20,7 +20,7 @@ flwrfrt_subset <- flwrfrt_subset %>% mutate(C1_open_flwrs = ifelse(is.na(C1_open
 	FC_halfway = ifelse(is.na(FC_halfway), 0, FC_halfway)) # replace NA entries with zeros
 
 flwrfrt_subset <- mutate(flwrfrt_subset, C1 = C1_open_flwrs + C1_buds) # create C1 and 2  variable from two censuses
-
+flwrfrt_subset <- mutate(flwrfrt_subset, C2 = C2_open_flwrs + C2_buds) # create C1 and 2  variable from two censuses
 head(flwrfrt_subset)
 
 # collate flower counts across columns and make new variable "node"
