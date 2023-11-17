@@ -28,3 +28,4 @@ head(flwrfrt_subset)
 
 flwrfrt_subset$node <- ifelse(flwrfrt_subset$C1>=flwrfrt_subset$C2,
 	flwrfrt_subset$C1,flwrfrt_subset$C2) # choose between C1 and C2
+# bjkhgjk
