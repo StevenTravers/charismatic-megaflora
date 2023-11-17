@@ -15,6 +15,7 @@ flwrfrt_subset <- flwrfrt_subset %>% mutate(C1_open_flwrs = ifelse(is.na(C1_open
   C1_buds = ifelse(is.na(C1_buds), 0, C1_buds),
 	C2_open_flwrs = ifelse(is.na(C2_open_flwrs), 0, C2_open_flwrs),
 	C2_buds = ifelse(is.na(C2_buds), 0, C2_buds),
+        C1Height = ifelse(is.na(C1Height), 0, C1Height),
 	FC_swollenfrt = ifelse(is.na(FC_swollenfrt), 0, FC_swollenfrt),
 	FC_undev = ifelse(is.na(FC_undev), 0, FC_undev), 
 	FC_halfway = ifelse(is.na(FC_halfway), 0, FC_halfway)) # replace NA entries with zeros
