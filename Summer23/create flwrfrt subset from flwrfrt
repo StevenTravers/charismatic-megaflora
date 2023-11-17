@@ -1,0 +1,29 @@
+# create flwrfrt subset
+# make new data subsets
+install.packages("tidyr")  # install the package
+library(tidyr)             # load the package
+
+install.packages("dplyr")  # install the package
+library(dplyr)              # load the package
+
+flwrfrt_subset <- dplyr::select(flwrfrt23, Population, PlantID, C1Height,
+	C1_open_flwrs, C1_buds, C2_open_flwrs, C2_buds, 
+	FC_swollenfrt, FC_undev, FC_halfway) # make subset dataset without fate columns   
+head(flwrfrt_subset)
+
+flwrfrt_subset <- flwrfrt_subset %>% mutate(C1_open_flwrs = ifelse(is.na(C1_open_flwrs), 0, C1_open_flwrs),
+  C1_buds = ifelse(is.na(C1_buds), 0, C1_buds),
+	C2_open_flwrs = ifelse(is.na(C2_open_flwrs), 0, C2_open_flwrs),
+	C2_buds = ifelse(is.na(C2_buds), 0, C2_buds),
+	FC_swollenfrt = ifelse(is.na(FC_swollenfrt), 0, FC_swollenfrt),
+	FC_undev = ifelse(is.na(FC_undev), 0, FC_undev), 
+	FC_halfway = ifelse(is.na(FC_halfway), 0, FC_halfway)) # replace NA entries with zeros
+
+flwrfrt_subset <- mutate(flwrfrt_subset, C1 = C1_open_flwrs + C1_buds) # create C1 and 2  variable from two censuses
+
+•	head(flwrfrt_subset)
+
+# collate flower counts across columns and make new variable "node"
+
+flwrfrt_subset$node <- ifelse(flwrfrt_subset$C1>=flwrfrt_subset$C2,
+	flwrfrt_subset$C1,flwrfrt_subset$C2) # choose between C1 and C2
