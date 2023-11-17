@@ -1,0 +1,27 @@
+# create subset of fruitdata23 that only includes plants with developed or undeveloped (intact) fruits
+flwrfrt_subset$newvar <- ifelse((flwrfrt_subset$FC_swollenfrt + flwrfrt_subset$FC_undev)>=1,1,0)# code for no fruit
+
+flwrplusfrt <- filter(flwrfrt_subset, newvar %in% 1) #remove rows with no fruit or ovaries
+ 
+View(flwrplusfrt)
+
+flwrplusfrt$fruitset <- flwrplusfrt$FC_swollenfrt/flwrplusfrt$node # create fruit set variable
+
+#Summary  of number of fruit per plant grouped by population
+install.packages("plyr")  # install the package
+library(plyr)              # load the package
+
+sumdata <- ddply(flwrplusfrt, c("Population"), summarise,
+               N    = length(FC_swollenfrt),
+              mean = mean(FC_swollenfrt),
+               sd   = sd(FC_swollenfrt),
+               se   = sd / sqrt(N)
+)
+
+#Summary  of fruitset grouped by population
+sumdata <- ddply(flwrplusfrt, c("Population"), summarise,
+               N    = length(fruitset),
+              mean = mean(fruitset),
+               sd   = sd(fruitset),
+               se   = sd / sqrt(N)
+  )
