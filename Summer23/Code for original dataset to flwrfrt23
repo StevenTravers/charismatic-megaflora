@@ -1,0 +1,15 @@
+# Code for converting original summer23 dataset into useable form
+setwd("D:/travers/orchids/NSERC grant 2023/Pollination study 2023/Summer 2023/Plant marking and fruit set")
+flwrfrt23 <- read.csv("D:/travers/orchids/NSERC grant 2023/Pollination study 2023/Summer 2023/Plant marking and fruit set/Overview_data_set_(adjust_for_R).csv") #load fruitset data
+head(flwrfrt23) #look at top few lines
+str(flwrfrt23)
+flwrfrt23$C1Height <- as.numeric(flwrfrt23$C1Height)    # convert height to numeric values 
+names(flwrfrt23)
+flwrfrt23$C1_open_flwrs <- as.numeric(flwrfrt23$C1_open_flwrs)    # convert open flwrs to numeric values
+flwrfrt23$C1_buds  <- as.numeric(flwrfrt23$C1_buds) 
+flwrfrt23$C2_open_flwrs <- as.numeric(flwrfrt23$C2_open_flwrs)    # convert open flwrs to numeric values
+flwrfrt23$C2_buds <- as.numeric(flwrfrt23$C2_buds)    # convert  to numeric values
+str(flwrfrt23)
+flwrfrt23$FC_swollenfrt <- as.numeric(flwrfrt23$FC_swollenfrt)    # convert frts to numeric values
+flwrfrt23$FC_undev <- as.numeric(flwrfrt23$FC_undev)    # convert frts to numeric values
+flwrfrt23$FC_halfway <- as.numeric(flwrfrt23$FC_halfway)
