@@ -1,0 +1,328 @@
+# Summer 2023 Orchid Pod Data
+# Written by Trinity Atkins 11/06/2023
+
+c <- file.choose("Overview_data_set_(adjust_for_R)")
+flwrfrt23 <- read.csv(c) #Add data set
+
+head(flwrfrt23) #Look at top few lines
+str(flwrfrt23) #Display summary of output
+
+flwrfrt23$C1Height <- as.numeric(flwrfrt23$C1Height) #convert height to numeric values 
+names(flwrfrt23)
+
+flwrfrt23$C1_open_flwrs <- as.numeric(flwrfrt23$C1_open_flwrs) #convert to numeric values
+flwrfrt23$C1_buds  <- as.numeric(flwrfrt23$C1_buds) 
+flwrfrt23$C2_open_flwrs <- as.numeric(flwrfrt23$C2_open_flwrs)
+flwrfrt23$C2_buds <- as.numeric(flwrfrt23$C2_buds)
+
+str(flwrfrt23) #Check to see what needs to be converted to numeric values (dots
+
+flwrfrt23$FC_swollenfrt <- as.numeric(flwrfrt23$FC_swollenfrt) #convert to numeric values
+flwrfrt23$FC_undev <- as.numeric(flwrfrt23$FC_undev)
+flwrfrt23$FC_halfway <- as.numeric(flwrfrt23$FC_halfway)
+
+#Making New Data Subsets
+#install.packages("dplyr") #Install packages
+
+library(tidyr) #Load packages
+library(dplyr)  
+
+flwrfrt_subset <- dplyr::select(flwrfrt23, Population, PlantID, C1Height, # make subset dataset without fate columns   
+      C1_open_flwrs, C1_buds, C2_open_flwrs, C2_buds, 
+      FC_swollenfrt, FC_undev, FC_halfway) 
+head(flwrfrt_subset)
+
+flwrfrt_subset <- flwrfrt_subset %>% mutate(C1_open_flwrs = ifelse(is.na(C1_open_flwrs), 0, C1_open_flwrs), # replace NA entries with zeros
+      C1_buds = ifelse(is.na(C1_buds), 0, C1_buds),
+      C2_open_flwrs = ifelse(is.na(C2_open_flwrs), 0, C2_open_flwrs),
+      C2_buds = ifelse(is.na(C2_buds), 0, C2_buds),
+      FC_swollenfrt = ifelse(is.na(FC_swollenfrt), 0, FC_swollenfrt),
+      FC_undev = ifelse(is.na(FC_undev), 0, FC_undev), 
+      C1Height = ifelse(is.na(C1Height), 0, C1Height),
+      FC_halfway = ifelse(is.na(FC_halfway), 0, FC_halfway)) 
+head(flwrfrt_subset)
+
+flwrfrt_subset <- mutate(flwrfrt_subset, C1 = C1_open_flwrs + C1_buds) # create C1 and 2 variable from two censuses
+flwrfrt_subset <- mutate(flwrfrt_subset, C2 = C2_open_flwrs + C2_buds) # create C1 and 2  variable from two censuses
+head(flwrfrt_subset)
+
+# collate flower counts across columns
+flwrfrt_subset$node <- ifelse(flwrfrt_subset$C1>=flwrfrt_subset$C2, # choose between C1 and C2
+      flwrfrt_subset$C1,flwrfrt_subset$C2) 
+
+# Make a frequency distribution of flower production
+library(ggplot2)
+ggplot(flwrfrt_subset, aes(x=node)) + geom_histogram(binwidth=1) 
+      
+#Produce a table of the four different fate frequencies grouped by population
+fate_subset <- dplyr::select(flwrfrt23, Population, PlantID,
+       Fate_MT, Fate_Herb, Fate_Hum, Fate_intact) # make subset dataset with fate columns   
+head(fate_subset)
+
+#convert chr to numeric columns
+fate_subset$Fate_MT <- as.numeric(fate_subset$Fate_MT)
+fate_subset$Fate_Herb <- as.numeric(fate_subset$Fate_Herb)
+fate_subset$Fate_Hum <- as.numeric(fate_subset$Fate_Hum)
+fate_subset$Fate_intact <- as.numeric(fate_subset$Fate_intact)
+
+#remove rows with NAs
+fate_subset <- filter(fate_subset, Fate_MT %in% c(0, 1), 
+        Fate_Herb %in% c(0,1), Fate_Hum %in% c(0,1), Fate_intact %in% c(0,1))
+View(fate_subset)
+
+# Make a table for population level fate proportions
+fate_grouped <- group_by(fate_subset, Population)   # grouping our dataset by pop
+summary2 <- summarise(fate_grouped, total.MT = sum(Fate_MT),
+         total.Herb = sum(Fate_Herb),
+         total.Hum = sum(Fate_Hum),
+         total.intact = sum(Fate_intact))
+View(summary2)
+
+###Messing around before lab meeting
+View(flwrfrt23)
+
+fruit_grouped <- group_by(flwrfrt_subset, Population)
+View(fruit_grouped)
+summary3 <- summarise(fruit_grouped, total.SF = sum(FC_swollenfrt))
+View(summary3)
+
+#Plotting fruit production among sites
+(fruit_production <- ggplot(summary3, aes(x = Population, y = total.SF)) +
+    geom_bar(position = position_dodge(), stat = "identity", fill = "#00868B") +
+    theme_bw() +
+    ylab("total.SF") +                             
+    xlab("Population")  +
+    theme(axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),  # Angled labels, so text doesn't overlap
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 14, face = "plain"),                      
+          panel.grid = element_blank(),                                          
+          plot.margin = unit(c(1,1,1,1), units = , "cm")))
+
+#Box plot - distribution of fruit production across sites
+boxplot <- ggplot(flwrfrt_subset, aes(x = Population, y = FC_swollenfrt)) +
+  geom_boxplot(fill = "skyblue", color = "black") +
+  labs(title = "Distribution of Fruit Production Across Sites",
+       y = "Fruit Production",
+       x = "Population") +
+  theme_minimal()
+print(boxplot)
+
+View(flwrfrt_subset)
+
+#Stacked bar graph comparing developed and undeveloped fruit between each site
+(fruit_vs_undev_bar <- ggplot(flwrfrt_subset, aes(x = Population)) +
+    geom_bar(aes(y = FC_swollenfrt, fill = "Developed Fruit"), position = "dodge", stat = "identity") +
+    geom_bar(aes(y = FC_undev, fill = "Undeveloped Fruit"), position = "dodge", stat = "identity") +
+    labs(title = "Developed vs Undeveloped Fruit in Each Site",
+         y = "Count",
+         x = "Population") +
+    scale_fill_manual(values = c("Developed Fruit" = "#00868B", "Undeveloped Fruit" = "#F7E76F")) +
+    theme_minimal())
+
+#Box plot - due to small of a sample size in my opinion
+(fruit_vs_undev_boxplot <- ggplot(flwrfrt_subset, aes(x = Population, y = FC_swollenfrt - FC_undev)) +
+    geom_boxplot(fill = "#00868B", color = "black") +
+    labs(title = "Developed vs Undeveloped Fruit in Each Site",
+         y = "Difference in Count (Developed - Undeveloped)",
+         x = "Population") +
+    theme_minimal())
+
+#T-test - comparing the counts of developed and undeveloped fruit within each site
+t_test_results <- flwrfrt_subset %>%
+  group_by(Population) %>%
+  summarise(t_test_result = list(t.test(FC_swollenfrt, FC_undev, paired = TRUE)))
+print(t_test_results)
+for (i in seq_along(t_test_results$Population)) { #Shows each individual t-test, only a difference in Burnham
+  cat("Population:", t_test_results$Population[i], "\n")
+  print(t_test_results$t_test_result[[i]])
+  cat("\n")}
+
+class(fate_subset$Fate_MT) # Check the class of 'Fate_MT'
+class(fate_subset$Fate_Herb) # Check the class of 'Fate_Herbivory'
+class(fate_subset$Fate_Hum) # Check the class of 'Fate_Human'
+class(fate_subset$Fate_intact) # Check the class of 'Fate_intact'
+
+
+View(summary2)
+
+#Stacked bar graph comparing plant fates between the different sites
+fate_stacked_bar <- ggplot(summary2, aes(x = Population)) +
+  geom_bar(aes(y = total.MT, fill = "total.MT"), position = "stack", stat = "identity") +
+  geom_bar(aes(y = total.Herb, fill = "total.Herb"), position = "stack", stat = "identity") +
+  geom_bar(aes(y = total.Hum, fill = "total.Hum"), position = "stack", stat = "identity") +
+  geom_bar(aes(y = total.intact, fill = "total.intact"), position = "stack", stat = "identity") +
+  labs(title = "Comparison of Plant Fates Between Sites",
+       y = "Count",
+       x = "Population") +
+  scale_fill_manual(values = c("total.MT" = "#00868B", "total.Herb" = "#F7E76F", "total.Hum" = "black", "total.intact" = "pink")) +
+  theme_minimal()
+
+print(fate_stacked_bar)
+
+#Fischer Test (would've done Chi-square test, but firscher better for small sample size - to assess whether there are significant differences in the distribution of categorical variables (in this case, fate types) across different groups (populations).
+data <- matrix(c(10, 5, 3, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), nrow = 5, dimnames = list(c("Population", "total.MT", "total.Herb", "total.Hum", "total.intact"), c("1", "2", "3", "4", "5", "6"))) # Create a contingency table
+result <- fisher.test(data) # Perform Fisher's exact test
+print(result) # Print the result
+
+fruit_grouped <- group_by(flwrfrt_subset, Population) #Change for scatterplot
+summary3 <- summarise(fruit_grouped, total.SF = sum(FC_swollenfrt))
+View(summary3)
+
+#Scatterplot comparing number of open flowers and fruit production -- CHANGE TO AVERAGE; scatterplot of # fruit vs # flowers
+scatterplot <- ggplot(flwrfrt_subset, aes(x = C2_open_flwrs, y = FC_swollenfrt)) +
+  geom_point(color = "#4A708B") +
+  geom_smooth(method = "lm", se = FALSE, color = "#F7E76F") + 
+  labs(title = "Relationship Between Fruit Production and Number of Open Flowers",
+       y = "Fruit Production",
+       x = "Number of Open Flowers") +
+  theme_minimal()
+print(scatterplot)
+
+
+# Summer 2023 Orchid Pod Data Pt 2
+# Written by Trinity Atkins 11/29/2023
+
+##Scatterplot frts vs flwrs
+frt_grouped <- mutate(flwrfrt_subset, combined_flwrs = C1_open_flwrs + C2_open_flwrs)
+View(frt_grouped)
+frt_grouped2 <- summarise(group_by(frt_grouped, combined_flwrs), avg_fruit = mean(FC_swollenfrt, na.rm = TRUE))
+View(frt_grouped2)
+
+scatterplot <- ggplot(frt_grouped2, aes(x = combined_flwrs, y = avg_fruit)) +
+  geom_point(color = "#4A708B") +
+  geom_smooth(method = "lm", se = FALSE, color = "#F7E76F") + 
+  labs(title = "Relationship Between Fruit Production and Number of Open Flowers",
+       y = "Average Fruit Production",
+       x = "Number of Open Flowers") +
+  theme_minimal()
+print(scatterplot)
+
+##flwrs per plant (ave + SE) by pop
+flowers_grouped <- group_by(frt_grouped, Population)
+flwrs_pop <- summarise(flowers_grouped, avg_flowers = mean(combined_flwrs), se = sd(combined_flwrs) / sqrt(n()))
+View(flwrs_pop)
+
+(flower_production <- ggplot(flwrs_pop, aes(x = Population, y = avg_flowers)) +
+    geom_bar(position = position_dodge(), stat = "identity", fill = "#2F4F4F") +
+    theme_bw() +
+    geom_errorbar(aes(ymin = avg_flowers - se, ymax = avg_flowers + se),
+                  position = position_dodge(width = 0.9), width = 0.25,
+                  color = "red", alpha = 0.7) +
+    ylab("avg_flowers") +                             
+    xlab("Population")  +
+    theme(axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),  # Angled labels, so text doesn't overlap
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 14, face = "plain"),                      
+          panel.grid = element_blank(),                                          
+          plot.margin = unit(c(1,1,1,1), units = , "cm")))
+
+##Height (ave + SE) by pop
+orchid_grouped <- group_by(flwrfrt_subset, Population)
+height_pop <- summarise(orchid_grouped, avg_height = mean(C1Height), se = sd(C1Height) / sqrt(n()))
+View(height_pop)
+
+(plant_height <- ggplot(height_pop, aes(x = Population, y = avg_height)) +
+    geom_bar(position = position_dodge(), stat = "identity", fill = "#2F4F4F") +
+    geom_errorbar(aes(ymin = avg_height - se, ymax = avg_height + se),
+                  position = position_dodge(width = 0.9), width = 0.25,
+                  color = "red", alpha = 0.7) +
+    theme_bw() +
+    ylab("avg_height") +                             
+    xlab("Population")  +
+    theme(axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),  # Angled labels, so text doesn't overlap
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 14, face = "plain"),                      
+          panel.grid = element_blank(),                                          
+          plot.margin = unit(c(1,1,1,1), units = , "cm")))
+
+##frts/plant (ave + SE) by pop
+orchid_grouped <- group_by(flwrfrt_subset, Population)
+fruit_pop <- summarise(orchid_grouped, avg_fruits = mean(FC_swollenfrt), se = sd(FC_swollenfrt) / sqrt(n()))
+
+View(fruit_pop)
+
+plant_fruit <- ggplot(fruit_pop, aes(x = Population, y = avg_fruits)) +
+  geom_bar(position = position_dodge(), stat = "identity", fill = "#2F4F4F") +
+  geom_errorbar(aes(ymin = avg_fruits - se, ymax = avg_fruits + se),
+                position = position_dodge(width = 0.9), width = 0.25,
+                color = "red", alpha = 0.7) +
+  theme_bw() +
+  ylab("Average Number of Fruits") +
+  xlab("Population") +
+  theme(axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),
+        axis.text.y = element_text(size = 12),
+        axis.title = element_text(size = 14, face = "plain"),
+        panel.grid = element_blank(),
+        plot.margin = unit(c(1,1,1,1), units = "cm"))
+print(plant_fruit)
+
+##frts/flwr/plant (ave + SE) by pop
+#Filter out rows with zero values in both FC_swollenfrt and combined_flwrs
+ratio_pop <- filter(frt_grouped, FC_swollenfrt != 0 | combined_flwrs != 0)
+
+#Group by Population and calculate the mean and standard error
+ratio_pop <- group_by(ratio_pop, Population) 
+ratio_pop <- summarise(ratio_pop, avg_ratio = mean(FC_swollenfrt / combined_flwrs),
+                       se = sd(FC_swollenfrt / combined_flwrs) / sqrt(n()))
+
+(ratio_plot <- ggplot(ratio_pop, aes(x = Population, y = avg_ratio)) +
+    geom_bar(position = position_dodge(), stat = "identity", fill = "#2F4F4F") +
+    geom_errorbar(aes(ymin = avg_ratio - se, ymax = avg_ratio + se),
+                  position = position_dodge(width = 0.9), width = 0.25,
+                  color = "red", alpha = 0.7) +
+    theme_bw() +
+    ylab("Average Ratio (frts/flwr/plant)") +
+    xlab("Population") +
+    theme(axis.text.x = element_text(size = 12, angle = 45, vjust = 1, hjust = 1),
+          axis.text.y = element_text(size = 12),
+          axis.title = element_text(size = 14, face = "plain"),
+          panel.grid = element_blank(),
+          plot.margin = unit(c(1,1,1,1), units = "cm")))
+print(ratio_plot)
+
+
+##flwrs vs height
+#Group by C1_open_flwrs and calculate the mean of C1Height for each group
+flwr_height <- summarise(group_by(flwrfrt_subset, C1_open_flwrs), avg_C1Height = mean(C1Height, na.rm = TRUE))
+View(flwr_height)
+
+scatterplot <- ggplot(flwr_height, aes(x = C1_open_flwrs, y = avg_C1Height)) +
+  geom_point(color = "#4A708B") +
+  geom_smooth(method = "lm", se = FALSE, color = "#F7E76F") + 
+  labs(title = "Relationship Between Fruit Production and Number of Open Flowers",
+       y = "avg_C1Height",
+       x = "C1_open_flwrs") +
+  theme_minimal()
+print(scatterplot)
+
+##Plot frt set vs height
+#Filter out rows where either FC_swollenfrt or combined_flwrs is 0
+filtered_frt_grouped <- filter(flwrfrt_subset, FC_swollenfrt != 0 | C1_open_flwrs != 0)
+
+#Calculate average height for each percentage of fruit set
+fruit_set_height_avg <- group_by(filtered_frt_grouped, percentage_fruit_set = FC_swollenfrt / C1_open_flwrs * 100) %>%
+  summarise(avg_height = mean(C1Height, na.rm = TRUE))
+
+fruit_set_height_avg_plot <- ggplot(fruit_set_height_avg, aes(x = percentage_fruit_set, y = avg_height)) +
+  geom_point(color = "#4A708B") +
+  labs(title = "Relationship Between Average Fruit Set and Height",
+       y = "Average Height",
+       x = "Average Fruit Set (%)") +
+  theme_minimal()
+print(fruit_set_height_avg_plot)
+
+##Summary Table
+#Filter out rows with zero fruit set or zero combined flowers
+View(frt_grouped)
+filtered_data <- subset(frt_grouped, FC_swollenfrt != 0 | combined_flwrs != 0)
+
+# Calculate average fruit set and average number of flowers per population
+summary_table <- aggregate(cbind(FC_swollenfrt, combined_flwrs) ~ Population, data = filtered_data, 
+                           FUN = function(x) mean(x, na.rm = TRUE))
+#Change names
+colnames(summary_table) <- c("Population", "avg_fruit_set", "avg_num_flowers")
+print(summary_table)
+
+
+
+
